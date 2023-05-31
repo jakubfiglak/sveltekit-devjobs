@@ -1,6 +1,7 @@
 import { SvelteKitAuth } from '@auth/sveltekit';
 import GitHub from '@auth/core/providers/github';
 import { GITHUB_ID, GITHUB_SECRET } from '$env/static/private';
+import { prisma } from '$lib/prisma';
 
 export const handle = SvelteKitAuth({
 	providers: [
@@ -13,13 +14,21 @@ export const handle = SvelteKitAuth({
 	callbacks: {
 		session: async ({ session, token }) => {
 			// Get the user from the database and add it to the session object
+			const dbUser = await prisma.user.findUnique({ where: { githubId: token.sub } });
 
-			return { expires: session.expires, user: { ...session.user, id: '123' } };
+			return { expires: session.expires, user: { ...session.user, id: dbUser?.id } };
 		},
-		signIn: async ({ account, user, credentials, email, profile }) => {
-			console.log({ account, user, credentials, email, profile });
+		signIn: async ({ account }) => {
+			// Create a user entity if it doesn't exist yet
+			if (account?.provider === 'github') {
+				const { providerAccountId: githubId } = account;
 
-			// Create a user if it doesn't exist yet
+				await prisma.user.upsert({
+					where: { githubId },
+					update: { githubId },
+					create: { githubId }
+				});
+			}
 
 			return true;
 		}
