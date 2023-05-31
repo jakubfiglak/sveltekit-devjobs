@@ -5,13 +5,15 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
+		"postinstall": "prisma generate",
 		"preview": "vite preview",
 		"test": "playwright test",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:unit": "vitest",
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
-		"format": "prettier --plugin-search-dir . --write ."
+		"format": "prettier --plugin-search-dir . --write .",
+		"vercel-build": "prisma generate && prisma migrate deploy && vite build"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.28.1",
